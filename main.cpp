@@ -1,4 +1,5 @@
 #include <opencv2/opencv.hpp>
+#include <math.h>
 
 using namespace std;
 using namespace cv;
@@ -15,6 +16,11 @@ Mat lambda(2, 4, CV_32FC1);
 //Input and Output Image;
 Mat input, output, tmp[5];
 
+int distance(Point2f& a, Point2f& b) {
+    return (int)sqrt((float)((a.x - b.x) * (a.x - b.x)+(a.y - b.y) * (a.y - b.y)));
+//    return (a.x - b.x) * (a.x - b.x)+(a.y - b.y) * (a.y - b.y);
+}
+
 void doTransform() {
     // The 4 points that select quadilateral on the input , from top-left in clockwise order
     // These four pts are the sides of the rect box used as input
@@ -23,16 +29,19 @@ void doTransform() {
     inputQuad[2] = Point2f(points[2]);
     inputQuad[3] = Point2f(points[3]);
 
+    int length = input.rows-1;
+    int width = input.cols-1;
     // The 4 points where the mapping is to be done , from top-left in clockwise order
     outputQuad[0] = Point2f(0,0);
-    outputQuad[1] = Point2f(input.cols-1,0);
-    outputQuad[2] = Point2f(input.cols-1,input.rows-1);
-    outputQuad[3] = Point2f(0,input.rows-1);
+    outputQuad[1] = Point2f(width,0);
+    outputQuad[2] = Point2f(width, length);
+    outputQuad[3] = Point2f(0,length);
 
     // Get the Perspective Transform Matrix i.e. lambda
     lambda = getPerspectiveTransform(inputQuad, outputQuad);
     // Apply the Perspective Transform just found to the src image
     warpPerspective(input,output,lambda,output.size());
+
 
     imshow("Output",output);
 }
@@ -44,6 +53,8 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
         points.push_back(Point(x,y));
         tmp[points.size()] = tmp[points.size() - 1].clone();
         circle(tmp[points.size()], points.back(), 8, CV_RGB(255,0,0), -1, 4, 3);
+        if(points.size() > 1)
+            line(tmp[points.size()], points.back(), points.at(points.size() - 2), CV_RGB(255,0,0), 3, 8, 0);
     }
     else if(event == EVENT_RBUTTONDOWN && points.size() > 0) {
         cout << "Right button of the mouse is clicked - remove (" << points.back().x << ", " << points.back().y << ")" << endl;
@@ -51,6 +62,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
     }
 
     if(event == EVENT_LBUTTONDOWN && points.size() == 4) {
+        line(tmp[points.size()], points.at(0), points.at(3), CV_RGB(255,0,0), 3, 8, 0);
         doTransform();
     }
 
@@ -60,7 +72,7 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
 }
 
 int main(int argc, char* argv[]) {
-    cout << "\nComputer Vision HW2 By I4A28 黃昭維" << endl;
+    cout << "\nComputer Vision HW2" << endl;
     cout << "\nLeft button click - choose a point." << endl;
     cout << "Right button click - undo." << endl;
     cout << "\n============================================" << endl;
