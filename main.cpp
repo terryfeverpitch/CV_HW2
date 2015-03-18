@@ -1,4 +1,4 @@
-#include<opencv2/opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 using namespace std;
 using namespace cv;
@@ -11,35 +11,28 @@ Point2f inputQuad[4];
 Point2f outputQuad[4];
 
 // Lambda Matrix
-Mat lambda( 2, 4, CV_32FC1 );
+Mat lambda(2, 4, CV_32FC1);
 //Input and Output Image;
 Mat input, output, tmp[5];
 
 void doTransform() {
     // The 4 points that select quadilateral on the input , from top-left in clockwise order
     // These four pts are the sides of the rect box used as input
-    /*
-    inputQuad[0] = Point2f( -30,-60 );
-    inputQuad[1] = Point2f( input.cols+50,-50);
-    inputQuad[2] = Point2f( input.cols+100,input.rows+50);
-    inputQuad[3] = Point2f( -50,input.rows+50  );
-    */
-
     inputQuad[0] = Point2f(points[0]);
     inputQuad[1] = Point2f(points[1]);
     inputQuad[2] = Point2f(points[2]);
     inputQuad[3] = Point2f(points[3]);
 
     // The 4 points where the mapping is to be done , from top-left in clockwise order
-    outputQuad[0] = Point2f( 0,0 );
-    outputQuad[1] = Point2f( input.cols-1,0);
-    outputQuad[2] = Point2f( input.cols-1,input.rows-1);
-    outputQuad[3] = Point2f( 0,input.rows-1  );
+    outputQuad[0] = Point2f(0,0);
+    outputQuad[1] = Point2f(input.cols-1,0);
+    outputQuad[2] = Point2f(input.cols-1,input.rows-1);
+    outputQuad[3] = Point2f(0,input.rows-1);
 
     // Get the Perspective Transform Matrix i.e. lambda
-    lambda = getPerspectiveTransform( inputQuad, outputQuad );
+    lambda = getPerspectiveTransform(inputQuad, outputQuad);
     // Apply the Perspective Transform just found to the src image
-    warpPerspective(input,output,lambda,output.size() );
+    warpPerspective(input,output,lambda,output.size());
 
     imshow("Output",output);
 }
@@ -57,7 +50,6 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
         points.pop_back();
     }
 
-
     if(event == EVENT_LBUTTONDOWN && points.size() == 4) {
         doTransform();
     }
@@ -67,23 +59,31 @@ void CallBackFunc(int event, int x, int y, int flags, void* userdata) {
     }
 }
 
-int main() {
-    cout << "Left button click - choose a point." << endl;
+int main(int argc, char* argv[]) {
+    cout << "\nComputer Vision HW2 By I4A28 黃昭維" << endl;
+    cout << "\nLeft button click - choose a point." << endl;
     cout << "Right button click - undo." << endl;
-    cout << "============================================" << endl;
+    cout << "\n============================================" << endl;
     cout << "Please choose the points in clockwise order." << endl;
     cout << "like : 0----1" << endl;
     cout << "       |    |" << endl;
     cout << "       |    |" << endl;
     cout << "       |    |" << endl;
     cout << "       3----2" << endl;
-    cout << "Press ESC to leave." << endl;
-    cout << "============================================" << endl;
+    cout << "Press 'ESC' to leave." << endl;
+    cout << "============================================\n" << endl;
     //Load the image
-    input = imread( "test2.jpg", 1 );
+    input = imread(argv[1], CV_LOAD_IMAGE_COLOR);
+
+    // Check for invalid input
+    if(!input.data) {
+        cout <<  "Could not open or find the image" << endl ;
+        return -1;
+    }
+
     tmp[0] = input.clone();
     // Set the lambda matrix the same type and size as input
-    lambda = Mat::zeros( input.rows, input.cols, input.type() );
+    lambda = Mat::zeros(input.rows, input.cols, input.type());
 
     //Display input and output
     //Create a window
